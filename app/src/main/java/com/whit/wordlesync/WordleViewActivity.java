@@ -51,7 +51,7 @@ public class WordleViewActivity extends AppCompatActivity {
         Button syncScores = (Button) findViewById(R.id.syncScoresButton);
         Button saveScores = (Button) findViewById(R.id.saveScoresButton);
         TextView warning = (TextView) findViewById(R.id.warningText);
-
+        WebView.setWebContentsDebuggingEnabled(true);
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
         webSettings.setDomStorageEnabled(true);
@@ -86,11 +86,17 @@ public class WordleViewActivity extends AppCompatActivity {
                                 data = document.getData().get("data").toString();
                                 getWordleStatsScript = "return localStorage[\\'nyt-wordle-statistics\\']";
                                 syncScript =
-                                        "localStorage[\\'nyt-wordle-statistics\\'] = \\'" + data + "\\';" +
-                                                "return true;";
 
-                                Log.d("AboutToRun", String.format("Function('%s')();", syncScript));
-                                webView.evaluateJavascript(String.format("Function('%s')();", syncScript), new ValueCallback<String>() {
+                                        "var stats = " + data + ";" +
+                                                "localStorage['nyt-wordle-statistics'] = \"\";"+
+                                                "console.log(stats);" +
+                                                "var str = JSON.stringify(stats);" +
+                                                "console.log(str);" +
+                                                "localStorage['nyt-wordle-statistics'] = stats;";
+
+
+                                Log.d("AboutToRun", String.format("Function(\"%s\")();", syncScript));
+                                webView.evaluateJavascript(syncScript, new ValueCallback<String>() {
                                     @Override
                                     public void onReceiveValue(String value) {
 
@@ -110,14 +116,6 @@ public class WordleViewActivity extends AppCompatActivity {
                         }
                     }
                 });
-
-
-
-
-
-
-
-
             }
         });
 

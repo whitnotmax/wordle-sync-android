@@ -32,7 +32,9 @@ import java.util.Map;
 
 public class WordleViewActivity extends AppCompatActivity {
 
-    private String getWordleStatsScript;
+    // NYtimes screwed things so we need to do hacky stuff
+    private String getWordleStatsScript =
+                    "return JSON.parse(localStorage['nyt-wordle-statistics']);";
     private String syncScript;
     private WebView webView;
     private FirebaseAuth mAuth;
@@ -84,15 +86,14 @@ public class WordleViewActivity extends AppCompatActivity {
                             DocumentSnapshot document = task.getResult();
                             if (document.exists()) {
                                 data = document.getData().get("data").toString();
-                                getWordleStatsScript = "return localStorage[\\'nyt-wordle-statistics\\']";
-                                syncScript =
+                                if (data.equals("null") || data == null) return; //???
 
+
+                                syncScript =
                                         "var stats = " + data + ";" +
                                                 "localStorage['nyt-wordle-statistics'] = \"\";"+
                                                 "console.log(stats);" +
-                                                "var str = JSON.stringify(stats);" +
-                                                "console.log(str);" +
-                                                "localStorage['nyt-wordle-statistics'] = stats;";
+                                                "localStorage['nyt-wordle-statistics'] = JSON.stringify(stats);"; // idk
 
 
                                 Log.d("AboutToRun", String.format("Function(\"%s\")();", syncScript));
@@ -133,8 +134,8 @@ public class WordleViewActivity extends AppCompatActivity {
     public void onSync(View view) {
 
 
-        Log.d("AboutToRun", String.format("Function('%s')();", getWordleStatsScript));
-                webView.evaluateJavascript(String.format("Function('%s')();", getWordleStatsScript), new ValueCallback<String>() {
+        Log.d("AboutToRun", String.format("Function(\"%s\")();", getWordleStatsScript));
+                webView.evaluateJavascript(String.format("Function(\"%s\")();", getWordleStatsScript), new ValueCallback<String>() {
                     @Override
                     public void onReceiveValue(String value) {
                         Map map = new HashMap();
